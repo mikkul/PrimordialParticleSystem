@@ -5,7 +5,9 @@ using Myra;
 using Myra.Graphics2D.UI;
 using Myra.Graphics2D.UI.Properties;
 using PPSMonoGame.Rendering;
+using PPSMonoGame.Utility;
 using PrimordialParticleSystems.Boundaries;
+using System;
 
 namespace PPSMonoGame
 {
@@ -48,6 +50,8 @@ namespace PPSMonoGame
                 ParticleSpeed = 7,
                 ReactionRadius = 150,
                 BoundariesEnabled = true,
+                MouseForceMultiplier = 250,
+                MouseForceRadius = 150,
             };
             _pps = new MonoGamePrimordialParticleSystem(settings, Content);
             _pps.Spawn(175);
@@ -105,6 +109,37 @@ namespace PPSMonoGame
 			{
 				Exit();
 			}
+
+            var mouseState = Mouse.GetState();
+
+            if(mouseState.LeftButton == ButtonState.Pressed)
+			{
+				foreach (var particle in _pps.Particles)
+				{
+                    var distSquared = Vector2.DistanceSquared(mouseState.Position.ToVector2(), particle.Position.ToVector2());
+                    if(distSquared < 1)
+					{
+                        continue;
+					}
+                    if(distSquared < _pps.Settings.ReactionRadiusSquared)
+					{
+                        Vector2 force = Vector2.Normalize(mouseState.Position.ToVector2() - particle.Position.ToVector2()) * _pps.Settings.MouseForceMultiplier / (float)Math.Sqrt(distSquared);
+                        particle.Position = new PrimordialParticleSystems.Utility.Point(particle.Position.X + force.X, particle.Position.Y + force.Y);
+                    }
+                }
+			}
+            else if(mouseState.RightButton == ButtonState.Pressed)
+			{
+                foreach (var particle in _pps.Particles)
+                {
+                    var distSquared = Vector2.DistanceSquared(mouseState.Position.ToVector2(), particle.Position.ToVector2());
+                    if (distSquared < _pps.Settings.ReactionRadiusSquared)
+                    {
+                        Vector2 force = Vector2.Normalize(particle.Position.ToVector2() - mouseState.Position.ToVector2()) * _pps.Settings.MouseForceMultiplier / (float)Math.Sqrt(distSquared);
+                        particle.Position = new PrimordialParticleSystems.Utility.Point(particle.Position.X + force.X, particle.Position.Y + force.Y);
+                    }
+                }
+            }
 
             _pps.Update();
 

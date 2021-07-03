@@ -29,6 +29,11 @@ namespace PPSMonoGame
 		/// <summary>
 		/// 
 		/// </summary>
+		public float MouseForceRadiusSquared => MouseForceRadius * MouseForceRadius;
+
+		/// <summary>
+		/// 
+		/// </summary>
 		public Dictionary<int, Color> NeighbourThresholdColours { get; set; }
 
 		/// <summary>
