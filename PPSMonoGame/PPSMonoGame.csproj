@@ -64,6 +64,8 @@
     <Compile Include="PPSSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rendering\BloomFilter.cs" />
+    <Compile Include="Rendering\QuadRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AssetManagementBase, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">
