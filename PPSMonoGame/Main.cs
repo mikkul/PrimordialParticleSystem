@@ -17,12 +17,15 @@ namespace PPSMonoGame
         MonoGamePrimordialParticleSystem _pps;
         int _windowWidth = 1000;
         int _windowHeight = 600;
-        RenderTarget2D _renderTarget;
+        RenderTarget2D _renderTarget1;
+        RenderTarget2D _renderTarget2;
         BloomFilter _bloomFilter;
+        Texture2D _whitePixelTexture;
 
         public Main()
         {
             _graphics = new GraphicsDeviceManager(this);
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
@@ -33,7 +36,8 @@ namespace PPSMonoGame
 
         protected override void Initialize()
         {
-            _renderTarget = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight);
+            _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+            _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight);
 
             var settings = new PPSSettings
             {
@@ -84,6 +88,10 @@ namespace PPSMonoGame
             _bloomFilter.BloomStreakLength = 1;
             _bloomFilter.BloomThreshold = 0f;
             _bloomFilter.BloomStrengthMultiplier = 1.75f;
+
+            //
+            _whitePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
+            _whitePixelTexture.SetData(new Color[] { Color.White });
         }
 
         protected override void UnloadContent()
@@ -105,34 +113,49 @@ namespace PPSMonoGame
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.SetRenderTarget(_renderTarget);
-
-            GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.SetRenderTarget(_renderTarget1);
 
             _spriteBatch.Begin();
-            _pps.Render();
-            _spriteBatch.End();
 
-            Texture2D bloom = null;
-            if (_pps.Settings.EnableParticleGlow)
+            if (_pps.Settings.EnableParticleTrace)
 			{
-                bloom = _bloomFilter.Draw(_renderTarget, (int)(_windowWidth * 0.75f), _windowHeight);
+                _spriteBatch.Draw(_whitePixelTexture, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), new Color(Color.Black, 0.1f));
             }
-
-            GraphicsDevice.SetRenderTarget(null);
-
-            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
+            else
+			{
+                GraphicsDevice.Clear(Color.Black);
+			}
 
             _pps.Render();
 
-            if (_pps.Settings.EnableParticleGlow)
-            {
-                _spriteBatch.Draw(bloom, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), Color.White);
-            }
-
             _spriteBatch.End();
 
-            _desktop.Render();
+			GraphicsDevice.SetRenderTarget(_renderTarget2);
+
+			_spriteBatch.Begin();
+			_pps.Render();
+			_spriteBatch.End();
+
+			Texture2D bloom = null;
+			if (_pps.Settings.EnableParticleGlow)
+			{
+				bloom = _bloomFilter.Draw(_renderTarget1, (int)(_windowWidth * 0.75f), _windowHeight);
+			}
+
+			GraphicsDevice.SetRenderTarget(null);
+
+			_spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
+
+			_spriteBatch.Draw(_renderTarget1, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), Color.White);
+
+			if (_pps.Settings.EnableParticleGlow)
+			{
+				_spriteBatch.Draw(bloom, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), Color.White);
+			}
+
+			_spriteBatch.End();
+
+			_desktop.Render();
 
             base.Draw(gameTime);
         }
