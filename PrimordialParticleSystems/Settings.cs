@@ -1,5 +1,6 @@
 ﻿using PrimordialParticleSystems.Boundaries;
 using PrimordialParticleSystems.Utility;
+using System.ComponentModel;
 
 namespace PrimordialParticleSystems
 {
@@ -15,6 +16,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Angle in degrees a particle rotates each frame
 		/// </summary>
+		[Category("Simulation")]
+		[DisplayName("Alpha (degrees)")]
 		public float Alpha
 		{
 			get => _alphaDegrees;
@@ -28,11 +31,15 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Alpha value in radians
 		/// </summary>
+		[Category("Readonly")]
+		[DisplayName("Alpha (radians)")]
 		public float AlphaRadians => _alphaRadians;
 
 		/// <summary>
 		/// Angle in degrees used in the motion formula
 		/// </summary>
+		[Category("Simulation")]
+		[DisplayName("Beta (degrees)")]
 		public float Beta { 
 			get => _betaDegrees;
 			set
@@ -45,26 +52,36 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Beta value in radians
 		/// </summary>
+		[Category("Readonly")]
+		[DisplayName("Beta (radians)")]
 		public float BetaRadians => _betaRadians;
 
 		/// <summary>
 		/// Describes whether the particles will be limited by the boundaries
 		/// </summary>
+		[Category("Interaction")]
+		[DisplayName("Enable boundaries")]
 		public bool BoundariesEnabled { get; set; }
 
 		/// <summary>
 		/// A boundary describing the area which the particles will be limited to
 		/// </summary>
+		[Category("Readonly")]
+		[DisplayName("Boundary")]
 		public IBoundary Boundary { get; set; }
 
 		/// <summary>
 		/// Number of pixels a particle can traverse in a straight line in one frame
 		/// </summary>
+		[Category("Simulation")]
+		[DisplayName("Particle speed")]
 		public float ParticleSpeed { get; set; }
 
 		/// <summary>
 		/// Number of pixels specifying the reaction radius of a particle
 		/// </summary>
+		[Category("Simulation")]
+		[DisplayName("Reaction radius")]
 		public float ReactionRadius
 		{
 			get => _reactionRadius;
@@ -78,6 +95,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Used for calculations
 		/// </summary>
+		[Category("Readonly")]
+		[DisplayName("Reaction radius sq")]
 		public float ReactionRadiusSquared => _reactionRadiusSquared;
 
 		/// <summary>
