@@ -1,6 +1,8 @@
-﻿using PrimordialParticleSystems.Boundaries;
+﻿using Newtonsoft.Json;
+using PrimordialParticleSystems.Boundaries;
 using PrimordialParticleSystems.Utility;
 using System.ComponentModel;
+using System.IO;
 
 namespace PrimordialParticleSystems
 {
@@ -68,6 +70,7 @@ namespace PrimordialParticleSystems
 		/// </summary>
 		[Category("Readonly")]
 		[DisplayName("Boundary")]
+		[JsonIgnore]
 		public IBoundary Boundary { get; set; }
 
 		/// <summary>
@@ -104,9 +107,10 @@ namespace PrimordialParticleSystems
 		/// </summary>
 		/// <param name="filePath"></param>
 		/// <returns></returns>
-		public static Settings FromFile(string filePath)
+		public static T FromFile<T>(string filePath) where T : Settings
 		{
-			throw new System.NotImplementedException();
+			T settingsObject = JsonConvert.DeserializeObject<T>(File.ReadAllText(filePath));
+			return settingsObject;
 		}
 
 		/// <summary>
@@ -115,7 +119,8 @@ namespace PrimordialParticleSystems
 		/// <param name="filePath"></param>
 		public void SaveToFile(string filePath)
 		{
-			throw new System.NotImplementedException();
+			var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(filePath, json);
 		}
 	}
 }

@@ -3,12 +3,14 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Myra;
 using Myra.Graphics2D.UI;
+using Myra.Graphics2D.UI.File;
 using Myra.Graphics2D.UI.Properties;
 using PPSMonoGame.Rendering;
 using PPSMonoGame.Utility;
 using PPSMonoGame.Utility.Myra;
 using PrimordialParticleSystems.Boundaries;
 using System;
+using System.IO;
 
 namespace PPSMonoGame
 {
@@ -27,6 +29,7 @@ namespace PPSMonoGame
         BloomFilter _bloomFilter;
         Texture2D _whitePixelTexture;
         bool _isPaused;
+        string _presetsPath;
 
         public Main()
         {
@@ -42,6 +45,8 @@ namespace PPSMonoGame
 
         protected override void Initialize()
         {
+            _presetsPath = Path.Combine(Content.RootDirectory, "Presets");
+
             _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
             _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight);
 
@@ -96,7 +101,7 @@ namespace PPSMonoGame
             {
                 Text = "Apply",
             };
-            applyWindowSizeButton.Click += (s, e) =>
+            applyWindowSizeButton.Click += (s, a) =>
             {
                 bool isValidWidth = int.TryParse(windowWidthInput.Value, out int newWidth);
                 bool isValidHeight = int.TryParse(windowHeightInput.Value, out int newHeight);
@@ -149,7 +154,7 @@ namespace PPSMonoGame
             {
                 Text = "Spawn",
             };
-            spawnParticlesButton.Click += (s, e) =>
+            spawnParticlesButton.Click += (s, a) =>
             {
                 bool isANumber = int.TryParse(particleCountInput.Value, out int amount);
                 if(isANumber)
@@ -162,7 +167,7 @@ namespace PPSMonoGame
             {
                 Text = "Clear",
             };
-            clearParticlesButton.Click += (s, e) =>
+            clearParticlesButton.Click += (s, a) =>
             {
                 _pps.Clear();
             };
@@ -171,7 +176,7 @@ namespace PPSMonoGame
             {
                 Text = "Pause",
             };
-            pauseResumeSimulationButton.Click += (s, e) =>
+            pauseResumeSimulationButton.Click += (s, a) =>
             {
                 _isPaused ^= true;
                 pauseResumeSimulationButton.Text = _isPaused ? "Resume" : "Pause";
@@ -186,6 +191,59 @@ namespace PPSMonoGame
 
             //
 
+            var saveSettingsPresetNameInput = new LabelledInput
+            {
+                Text = "Preset name:",
+            };
+
+            var saveSettingsButton = new TextButton
+            {
+                Text = "Save preset",
+            };
+            saveSettingsButton.Click += (s, a) =>
+            {
+                var name = saveSettingsPresetNameInput.Value;
+                if (string.IsNullOrEmpty(name) || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+				{
+                    return;
+				}
+
+                _pps.Settings.SaveToFile(Path.Combine(_presetsPath, Path.ChangeExtension(name, ".preset")));
+            };
+
+            var loadSettingsButton = new TextButton
+            {
+                Text = "Load settings from file",
+            };
+            var loadSettingsFileDialog = new FileDialog(FileDialogMode.OpenFile)
+            {
+                Filter = "*.preset",
+                Folder = _presetsPath,
+            };
+            loadSettingsFileDialog.Closed += (s, a) =>
+            {
+                if(!loadSettingsFileDialog.Result)
+				{
+                    return;
+				}
+
+                try
+				{
+                    _pps.Settings = PrimordialParticleSystems.Settings.FromFile<PPSSettings>(loadSettingsFileDialog.FilePath);
+                    propGrid.Object = _pps.Settings;
+                }
+                catch(Exception e)
+				{
+                    System.Diagnostics.Debugger.Break();
+				}
+            };
+            loadSettingsButton.Click += (s, a) =>
+            {
+                loadSettingsFileDialog.ShowModal(_desktop);
+            };
+
+            //
+
             sidebar.Widgets.Add(windowWidthInput);
             sidebar.Widgets.Add(windowHeightInput);
             sidebar.Widgets.Add(applyWindowSizeButton);
@@ -196,6 +254,10 @@ namespace PPSMonoGame
             sidebar.Widgets.Add(pauseResumeSimulationButton);
             sidebar.Widgets.Add(new HorizontalSeparator());
             sidebar.Widgets.Add(propGrid);
+            sidebar.Widgets.Add(new HorizontalSeparator());
+            sidebar.Widgets.Add(saveSettingsPresetNameInput);
+            sidebar.Widgets.Add(saveSettingsButton);
+            sidebar.Widgets.Add(loadSettingsButton);
 
             mainGrid.Widgets.Add(sidebarScrollViewer);
 
