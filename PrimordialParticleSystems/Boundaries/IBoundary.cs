@@ -7,7 +7,7 @@ namespace PrimordialParticleSystems.Boundaries
 		/// <summary>
 		/// 
 		/// </summary>
-		Point Size { get; }
+		Point Size { get; set; }
 
 		/// <summary>
 		/// Clamps the given point to a position where it's not outside of the boundary

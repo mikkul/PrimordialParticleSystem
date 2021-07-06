@@ -10,7 +10,7 @@ namespace PrimordialParticleSystems.Boundaries
 		}
 
 		/// <inheritdoc/>
-		public Point Size { get; }
+		public Point Size { get; set; }
 
 		/// <inheritdoc/>
 		public Point Clamp(Point point)

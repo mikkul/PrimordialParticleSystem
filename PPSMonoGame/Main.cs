@@ -6,6 +6,7 @@ using Myra.Graphics2D.UI;
 using Myra.Graphics2D.UI.Properties;
 using PPSMonoGame.Rendering;
 using PPSMonoGame.Utility;
+using PPSMonoGame.Utility.Myra;
 using PrimordialParticleSystems.Boundaries;
 using System;
 
@@ -17,12 +18,15 @@ namespace PPSMonoGame
         SpriteBatch _spriteBatch;
         Desktop _desktop;
         MonoGamePrimordialParticleSystem _pps;
-        int _windowWidth = 1000;
-        int _windowHeight = 600;
+        int _windowWidth = 1200;
+        int _windowHeight = 800;
+        int _minWindowWidth = 600;
+        int _minWindowHeight = 300;
         RenderTarget2D _renderTarget1;
         RenderTarget2D _renderTarget2;
         BloomFilter _bloomFilter;
         Texture2D _whitePixelTexture;
+        bool _isPaused;
 
         public Main()
         {
@@ -63,14 +67,137 @@ namespace PPSMonoGame
             mainGrid.ColumnsProportions.Add(new Proportion(ProportionType.Part, 1));
             mainGrid.RowsProportions.Add(new Proportion());
 
-            var propGrid = new PropertyGrid
+            var sidebar = new VerticalStackPanel
             {
-                Object = settings,
+                Spacing = 10,
+                Padding = new Myra.Graphics2D.Thickness(5, 10),
+            };
+
+            var sidebarScrollViewer = new ScrollViewer
+            {
+                Content = sidebar,
                 GridColumn = 1,
                 GridRow = 0,
             };
 
-            mainGrid.Widgets.Add(propGrid);
+            //
+
+            var windowWidthInput = new LabelledInput
+            {
+                Text = "Window width:",
+            };
+
+            var windowHeightInput = new LabelledInput
+            {
+                Text = "Window height:",
+            };
+
+            var applyWindowSizeButton = new TextButton
+            {
+                Text = "Apply",
+            };
+            applyWindowSizeButton.Click += (s, e) =>
+            {
+                bool isValidWidth = int.TryParse(windowWidthInput.Value, out int newWidth);
+                bool isValidHeight = int.TryParse(windowHeightInput.Value, out int newHeight);
+
+                if(!isValidWidth || !isValidHeight)
+				{
+                    return;
+				}
+
+                newWidth = Math.Max(newWidth, _minWindowWidth);
+                newHeight = Math.Max(newHeight, _minWindowHeight);
+
+                _pps.Settings.Boundary.Size = new PrimordialParticleSystems.Utility.Point(newWidth, newHeight);
+
+                // TODO: remove boilerplate
+
+                _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(newWidth * 0.75f), newHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+                _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(newWidth * 0.75f), newHeight);
+
+                _bloomFilter.Load(GraphicsDevice, Content, (int)(newWidth * 0.75f), newHeight);
+                _bloomFilter.BloomPreset = BloomFilter.BloomPresets.Focussed;
+                _bloomFilter.BloomStreakLength = 1;
+                _bloomFilter.BloomThreshold = 0f;
+                _bloomFilter.BloomStrengthMultiplier = 1.75f;
+
+                int screenWidth = GraphicsDevice.Adapter.CurrentDisplayMode.Width;
+                int screenHeight = GraphicsDevice.Adapter.CurrentDisplayMode.Height;
+
+                int x = screenWidth / 2 - newWidth / 2;
+                int y = screenHeight / 2 - newHeight / 2;
+
+                _graphics.PreferredBackBufferWidth = newWidth;
+                _graphics.PreferredBackBufferHeight = newHeight;
+                _graphics.ApplyChanges();
+
+                _windowWidth = newWidth;
+                _windowHeight = newHeight;
+
+                Window.Position = new Point(x, y);
+            };
+
+            //
+
+            var particleCountInput = new LabelledInput
+            {
+                Text = "Number of particles:",
+            };
+
+            var spawnParticlesButton = new TextButton
+            {
+                Text = "Spawn",
+            };
+            spawnParticlesButton.Click += (s, e) =>
+            {
+                bool isANumber = int.TryParse(particleCountInput.Value, out int amount);
+                if(isANumber)
+				{
+                    _pps.Spawn(amount);
+                }
+            };
+
+            var clearParticlesButton = new TextButton
+            {
+                Text = "Clear",
+            };
+            clearParticlesButton.Click += (s, e) =>
+            {
+                _pps.Clear();
+            };
+
+            var pauseResumeSimulationButton = new TextButton
+            {
+                Text = "Pause",
+            };
+            pauseResumeSimulationButton.Click += (s, e) =>
+            {
+                _isPaused ^= true;
+                pauseResumeSimulationButton.Text = _isPaused ? "Resume" : "Pause";
+            };
+
+            //
+
+            var propGrid = new PropertyGrid
+            {
+                Object = settings,
+            };
+
+            //
+
+            sidebar.Widgets.Add(windowWidthInput);
+            sidebar.Widgets.Add(windowHeightInput);
+            sidebar.Widgets.Add(applyWindowSizeButton);
+            sidebar.Widgets.Add(new HorizontalSeparator());
+            sidebar.Widgets.Add(particleCountInput);
+            sidebar.Widgets.Add(spawnParticlesButton);
+            sidebar.Widgets.Add(clearParticlesButton);
+            sidebar.Widgets.Add(pauseResumeSimulationButton);
+            sidebar.Widgets.Add(new HorizontalSeparator());
+            sidebar.Widgets.Add(propGrid);
+
+            mainGrid.Widgets.Add(sidebarScrollViewer);
 
             _desktop = new Desktop();
             _desktop.Widgets.Add(mainGrid);
@@ -110,38 +237,11 @@ namespace PPSMonoGame
 				Exit();
 			}
 
-            var mouseState = Mouse.GetState();
-
-            if(mouseState.LeftButton == ButtonState.Pressed)
+            if(!_isPaused)
 			{
-				foreach (var particle in _pps.Particles)
-				{
-                    var distSquared = Vector2.DistanceSquared(mouseState.Position.ToVector2(), particle.Position.ToVector2());
-                    if(distSquared < 1)
-					{
-                        continue;
-					}
-                    if(distSquared < _pps.Settings.ReactionRadiusSquared)
-					{
-                        Vector2 force = Vector2.Normalize(mouseState.Position.ToVector2() - particle.Position.ToVector2()) * _pps.Settings.MouseForceMultiplier / (float)Math.Sqrt(distSquared);
-                        particle.Position = new PrimordialParticleSystems.Utility.Point(particle.Position.X + force.X, particle.Position.Y + force.Y);
-                    }
-                }
-			}
-            else if(mouseState.RightButton == ButtonState.Pressed)
-			{
-                foreach (var particle in _pps.Particles)
-                {
-                    var distSquared = Vector2.DistanceSquared(mouseState.Position.ToVector2(), particle.Position.ToVector2());
-                    if (distSquared < _pps.Settings.ReactionRadiusSquared)
-                    {
-                        Vector2 force = Vector2.Normalize(particle.Position.ToVector2() - mouseState.Position.ToVector2()) * _pps.Settings.MouseForceMultiplier / (float)Math.Sqrt(distSquared);
-                        particle.Position = new PrimordialParticleSystems.Utility.Point(particle.Position.X + force.X, particle.Position.Y + force.Y);
-                    }
-                }
+                _pps.Update();
+                HandleInput();
             }
-
-            _pps.Update();
 
 			base.Update(gameTime);
         }
@@ -193,6 +293,34 @@ namespace PPSMonoGame
 			_desktop.Render();
 
             base.Draw(gameTime);
+        }
+
+        private void HandleInput()
+		{
+            var mouseState = Mouse.GetState();
+
+            if (mouseState.LeftButton == ButtonState.Pressed)
+            {
+                moveParticlesByMouseForce(1);
+            }
+            else if (mouseState.RightButton == ButtonState.Pressed)
+            {
+                moveParticlesByMouseForce(-1);
+            }
+
+            void moveParticlesByMouseForce(float multiplier)
+			{
+                foreach (var particle in _pps.Particles)
+                {
+                    var distSquared = Vector2.DistanceSquared(mouseState.Position.ToVector2(), particle.Position.ToVector2());
+                    if (distSquared < _pps.Settings.ReactionRadiusSquared)
+                    {
+                        Vector2 force = Vector2.Normalize(mouseState.Position.ToVector2() - particle.Position.ToVector2()) * _pps.Settings.MouseForceMultiplier / (float)Math.Sqrt(distSquared);
+                        force *= multiplier;
+                        particle.Position = new PrimordialParticleSystems.Utility.Point(particle.Position.X + force.X, particle.Position.Y + force.Y);
+                    }
+                }
+            }
         }
     }
 }
