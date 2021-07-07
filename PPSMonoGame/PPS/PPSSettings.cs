@@ -9,11 +9,14 @@ namespace PPSMonoGame.PPS
 	{
 		public PPSSettings()
 		{
-			// I think dictionaries aren't supported by Myra's PropertyGrid
-			//NeighbourThresholdColours = new Dictionary<int, Color>
-			//{
-			//	{0, Color.DarkGreen },
-			//};
+			NeighbourCountThresholds = new List<IntValue>
+			{
+				new IntValue(0),
+			};
+			ParticleColors = new List<Color>
+			{
+				Color.DarkGreen,
+			};
 		}
 
 		/// <summary>
@@ -55,8 +58,15 @@ namespace PPSMonoGame.PPS
 		/// 
 		/// </summary>
 		[Category("Visuals")]
-		[DisplayName("Threshold colors")]
-		public Dictionary<int, Color> NeighbourThresholdColours { get; set; }
+		[DisplayName("Thresholds")]
+		public List<IntValue> NeighbourCountThresholds { get; set; }
+
+		/// <summary>
+		/// 
+		/// </summary>
+		[Category("Visuals")]
+		[DisplayName("Colors")]
+		public List<Color> ParticleColors { get; set; }
 
 		/// <summary>
 		/// Get or sets the particle radius in pixels
@@ -64,5 +74,15 @@ namespace PPSMonoGame.PPS
 		[Category("Visuals")]
 		[DisplayName("Particle size")]
 		public float ParticleSize { get; set; }
+	}
+
+	struct IntValue
+	{
+		public IntValue(int value)
+		{
+			Value = value;
+		}
+
+		public int Value { get; set; }
 	}
 }

@@ -23,8 +23,22 @@ namespace PPSMonoGame.PPS
 		{
 			foreach (var particle in Particles)
 			{
+				Color color = Color.Magenta;
+
+				for (int i = 0; i < Settings.NeighbourCountThresholds.Count; i++)
+				{
+					if(i >= Settings.ParticleColors.Count)
+					{
+						break;
+					}
+					if(particle.NeighbourCount >= Settings.NeighbourCountThresholds[i].Value)
+					{
+						color = Settings.ParticleColors[i];
+					}
+				}
+
 				var rect = new Rectangle((int)(particle.Position.X - Settings.ParticleSize), (int)(particle.Position.Y - Settings.ParticleSize), (int)(Settings.ParticleSize * 2), (int)(Settings.ParticleSize * 2));
-				SpriteBatch.Draw(_circleTexture, rect, Color.DarkGreen);
+				SpriteBatch.Draw(_circleTexture, rect, color);
 			}
 		}
 	}
