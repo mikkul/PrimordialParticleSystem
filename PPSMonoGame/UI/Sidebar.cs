@@ -28,8 +28,13 @@ namespace PPSMonoGame.UI
 			ConstructGUI();
 		}
 
+		public Label FPSCounterLabel { get; set; }
+		public Label ParticleCountLabel { get; set; }
+
 		private void ConstructGUI()
 		{
+			AddCounters();
+			this.Widgets.Add(new HorizontalSeparator());
 			AddSimulationOptions();
 			this.Widgets.Add(new HorizontalSeparator());
 			AddWindowSizeCustomization();
@@ -39,6 +44,15 @@ namespace PPSMonoGame.UI
 			AddSettingsPropertyGrid();
 			this.Widgets.Add(new HorizontalSeparator());
 			AddPresets();
+		}
+
+		private void AddCounters()
+		{
+			FPSCounterLabel = new Label();
+			ParticleCountLabel = new Label();
+
+			this.Widgets.Add(FPSCounterLabel);
+			this.Widgets.Add(ParticleCountLabel);
 		}
 
 		private void AddSimulationOptions()
