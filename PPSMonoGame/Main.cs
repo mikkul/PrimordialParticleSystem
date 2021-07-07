@@ -3,14 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Myra;
 using Myra.Graphics2D.UI;
-using Myra.Graphics2D.UI.File;
-using Myra.Graphics2D.UI.Properties;
+using PPSMonoGame.PPS;
 using PPSMonoGame.Rendering;
+using PPSMonoGame.UI;
 using PPSMonoGame.Utility;
-using PPSMonoGame.Utility.Myra;
 using PrimordialParticleSystems.Boundaries;
 using System;
-using System.IO;
 
 namespace PPSMonoGame
 {
@@ -18,18 +16,13 @@ namespace PPSMonoGame
     {
         GraphicsDeviceManager _graphics;
         SpriteBatch _spriteBatch;
+        WindowManager _windowManager;
         Desktop _desktop;
         MonoGamePrimordialParticleSystem _pps;
-        int _windowWidth = 1200;
-        int _windowHeight = 800;
-        int _minWindowWidth = 600;
-        int _minWindowHeight = 300;
         RenderTarget2D _renderTarget1;
         RenderTarget2D _renderTarget2;
         BloomFilter _bloomFilter;
         Texture2D _whitePixelTexture;
-        bool _isPaused;
-        string _presetsPath;
 
         public Main()
         {
@@ -38,21 +31,17 @@ namespace PPSMonoGame
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
-            _graphics.PreferredBackBufferWidth = _windowWidth;
-            _graphics.PreferredBackBufferHeight = _windowHeight;
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
         }
 
         protected override void Initialize()
         {
-            _presetsPath = Path.Combine(Content.RootDirectory, "Presets");
-
-            _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-            _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(_windowWidth * 0.75f), _windowHeight);
+            _windowManager = new WindowManager(Window, _graphics, 500, 300);
+            _windowManager.WindowSizeChanged += WindowSizeChanged;
 
             var settings = new PPSSettings
             {
-                Boundary = new RectBoundary(_windowWidth * 0.75f, _windowHeight),
+                Boundary = new RectBoundary(0, 0),
                 Alpha = 180,
                 Beta = 17,
                 ParticleSize = 2,
@@ -63,7 +52,6 @@ namespace PPSMonoGame
                 MouseForceRadius = 150,
             };
             _pps = new MonoGamePrimordialParticleSystem(settings, Content);
-            _pps.Spawn(175);
 
             MyraEnvironment.Game = this;
 
@@ -72,11 +60,7 @@ namespace PPSMonoGame
             mainGrid.ColumnsProportions.Add(new Proportion(ProportionType.Part, 1));
             mainGrid.RowsProportions.Add(new Proportion());
 
-            var sidebar = new VerticalStackPanel
-            {
-                Spacing = 10,
-                Padding = new Myra.Graphics2D.Thickness(5, 10),
-            };
+            var sidebar = new Sidebar(_pps, _windowManager, Content.RootDirectory);
 
             var sidebarScrollViewer = new ScrollViewer
             {
@@ -84,180 +68,6 @@ namespace PPSMonoGame
                 GridColumn = 1,
                 GridRow = 0,
             };
-
-            //
-
-            var windowWidthInput = new LabelledInput
-            {
-                Text = "Window width:",
-            };
-
-            var windowHeightInput = new LabelledInput
-            {
-                Text = "Window height:",
-            };
-
-            var applyWindowSizeButton = new TextButton
-            {
-                Text = "Apply",
-            };
-            applyWindowSizeButton.Click += (s, a) =>
-            {
-                bool isValidWidth = int.TryParse(windowWidthInput.Value, out int newWidth);
-                bool isValidHeight = int.TryParse(windowHeightInput.Value, out int newHeight);
-
-                if(!isValidWidth || !isValidHeight)
-				{
-                    return;
-				}
-
-                newWidth = Math.Max(newWidth, _minWindowWidth);
-                newHeight = Math.Max(newHeight, _minWindowHeight);
-
-                _pps.Settings.Boundary.Size = new PrimordialParticleSystems.Utility.Point(newWidth, newHeight);
-
-                // TODO: remove boilerplate
-
-                _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(newWidth * 0.75f), newHeight, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
-                _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(newWidth * 0.75f), newHeight);
-
-                _bloomFilter.Load(GraphicsDevice, Content, (int)(newWidth * 0.75f), newHeight);
-                _bloomFilter.BloomPreset = BloomFilter.BloomPresets.Focussed;
-                _bloomFilter.BloomStreakLength = 1;
-                _bloomFilter.BloomThreshold = 0f;
-                _bloomFilter.BloomStrengthMultiplier = 1.75f;
-
-                int screenWidth = GraphicsDevice.Adapter.CurrentDisplayMode.Width;
-                int screenHeight = GraphicsDevice.Adapter.CurrentDisplayMode.Height;
-
-                int x = screenWidth / 2 - newWidth / 2;
-                int y = screenHeight / 2 - newHeight / 2;
-
-                _graphics.PreferredBackBufferWidth = newWidth;
-                _graphics.PreferredBackBufferHeight = newHeight;
-                _graphics.ApplyChanges();
-
-                _windowWidth = newWidth;
-                _windowHeight = newHeight;
-
-                Window.Position = new Point(x, y);
-            };
-
-            //
-
-            var particleCountInput = new LabelledInput
-            {
-                Text = "Number of particles:",
-            };
-
-            var spawnParticlesButton = new TextButton
-            {
-                Text = "Spawn",
-            };
-            spawnParticlesButton.Click += (s, a) =>
-            {
-                bool isANumber = int.TryParse(particleCountInput.Value, out int amount);
-                if(isANumber)
-				{
-                    _pps.Spawn(amount);
-                }
-            };
-
-            var clearParticlesButton = new TextButton
-            {
-                Text = "Clear",
-            };
-            clearParticlesButton.Click += (s, a) =>
-            {
-                _pps.Clear();
-            };
-
-            var pauseResumeSimulationButton = new TextButton
-            {
-                Text = "Pause",
-            };
-            pauseResumeSimulationButton.Click += (s, a) =>
-            {
-                _isPaused ^= true;
-                pauseResumeSimulationButton.Text = _isPaused ? "Resume" : "Pause";
-            };
-
-            //
-
-            var propGrid = new PropertyGrid
-            {
-                Object = settings,
-            };
-
-            //
-
-            var saveSettingsPresetNameInput = new LabelledInput
-            {
-                Text = "Preset name:",
-            };
-
-            var saveSettingsButton = new TextButton
-            {
-                Text = "Save preset",
-            };
-            saveSettingsButton.Click += (s, a) =>
-            {
-                var name = saveSettingsPresetNameInput.Value;
-                if (string.IsNullOrEmpty(name) || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
-				{
-                    return;
-				}
-
-                _pps.Settings.SaveToFile(Path.Combine(_presetsPath, Path.ChangeExtension(name, ".preset")));
-            };
-
-            var loadSettingsButton = new TextButton
-            {
-                Text = "Load settings from file",
-            };
-            var loadSettingsFileDialog = new FileDialog(FileDialogMode.OpenFile)
-            {
-                Filter = "*.preset",
-                Folder = _presetsPath,
-            };
-            loadSettingsFileDialog.Closed += (s, a) =>
-            {
-                if(!loadSettingsFileDialog.Result)
-				{
-                    return;
-				}
-
-                try
-				{
-                    _pps.Settings = PrimordialParticleSystems.Settings.FromFile<PPSSettings>(loadSettingsFileDialog.FilePath);
-                    propGrid.Object = _pps.Settings;
-                }
-                catch(Exception e)
-				{
-                    System.Diagnostics.Debugger.Break();
-				}
-            };
-            loadSettingsButton.Click += (s, a) =>
-            {
-                loadSettingsFileDialog.ShowModal(_desktop);
-            };
-
-            //
-
-            sidebar.Widgets.Add(windowWidthInput);
-            sidebar.Widgets.Add(windowHeightInput);
-            sidebar.Widgets.Add(applyWindowSizeButton);
-            sidebar.Widgets.Add(new HorizontalSeparator());
-            sidebar.Widgets.Add(particleCountInput);
-            sidebar.Widgets.Add(spawnParticlesButton);
-            sidebar.Widgets.Add(clearParticlesButton);
-            sidebar.Widgets.Add(pauseResumeSimulationButton);
-            sidebar.Widgets.Add(new HorizontalSeparator());
-            sidebar.Widgets.Add(propGrid);
-            sidebar.Widgets.Add(new HorizontalSeparator());
-            sidebar.Widgets.Add(saveSettingsPresetNameInput);
-            sidebar.Widgets.Add(saveSettingsButton);
-            sidebar.Widgets.Add(loadSettingsButton);
 
             mainGrid.Widgets.Add(sidebarScrollViewer);
 
@@ -267,7 +77,7 @@ namespace PPSMonoGame
             base.Initialize();
         }
 
-        protected override void LoadContent()
+		protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
@@ -275,16 +85,15 @@ namespace PPSMonoGame
 
             // Load the BloomFilter
             _bloomFilter = new BloomFilter();
-            _bloomFilter.Load(GraphicsDevice, Content, (int)(_windowWidth * 0.75f), _windowHeight);
-
-            _bloomFilter.BloomPreset = BloomFilter.BloomPresets.Focussed;
-            _bloomFilter.BloomStreakLength = 1;
-            _bloomFilter.BloomThreshold = 0f;
-            _bloomFilter.BloomStrengthMultiplier = 1.75f;
 
             //
             _whitePixelTexture = new Texture2D(GraphicsDevice, 1, 1);
             _whitePixelTexture.SetData(new Color[] { Color.White });
+
+            //
+            _windowManager.WindowWidth = 1200;
+            _windowManager.WindowHeight = 800;
+            _windowManager.ApplyChanges();
         }
 
         protected override void UnloadContent()
@@ -299,11 +108,8 @@ namespace PPSMonoGame
 				Exit();
 			}
 
-            if(!_isPaused)
-			{
-                _pps.Update();
-                HandleInput();
-            }
+            _pps.Update();
+            HandleInput();
 
 			base.Update(gameTime);
         }
@@ -316,7 +122,7 @@ namespace PPSMonoGame
 
             if (_pps.Settings.EnableParticleTrace)
 			{
-                _spriteBatch.Draw(_whitePixelTexture, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), new Color(Color.Black, 0.1f));
+                _spriteBatch.Draw(_whitePixelTexture, new Rectangle(0, 0, (int)(_windowManager.WindowWidth * 0.75f), _windowManager.WindowHeight), new Color(Color.Black, 0.1f));
             }
             else
 			{
@@ -336,18 +142,18 @@ namespace PPSMonoGame
 			Texture2D bloom = null;
 			if (_pps.Settings.EnableParticleGlow)
 			{
-				bloom = _bloomFilter.Draw(_renderTarget1, (int)(_windowWidth * 0.75f), _windowHeight);
+				bloom = _bloomFilter.Draw(_renderTarget1, (int)(_windowManager.WindowWidth * 0.75f), _windowManager.WindowHeight);
 			}
 
 			GraphicsDevice.SetRenderTarget(null);
 
 			_spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
 
-			_spriteBatch.Draw(_renderTarget1, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), Color.White);
+			_spriteBatch.Draw(_renderTarget1, new Rectangle(0, 0, (int)(_windowManager.WindowWidth * 0.75f), _windowManager.WindowHeight), Color.White);
 
 			if (_pps.Settings.EnableParticleGlow)
 			{
-				_spriteBatch.Draw(bloom, new Rectangle(0, 0, (int)(_windowWidth * 0.75f), _windowHeight), Color.White);
+				_spriteBatch.Draw(bloom, new Rectangle(0, 0, (int)(_windowManager.WindowWidth * 0.75f), _windowManager.WindowHeight), Color.White);
 			}
 
 			_spriteBatch.End();
@@ -383,6 +189,20 @@ namespace PPSMonoGame
                     }
                 }
             }
+        }
+
+        private void WindowSizeChanged(int width, int height)
+        {
+            _renderTarget1 = new RenderTarget2D(GraphicsDevice, (int)(width * 0.75f), height, false, SurfaceFormat.Vector4, DepthFormat.Depth24, 0, RenderTargetUsage.PreserveContents);
+            _renderTarget2 = new RenderTarget2D(GraphicsDevice, (int)(width * 0.75f), height);
+
+            _bloomFilter.Load(GraphicsDevice, Content, (int)(width * 0.75f), height);
+            _bloomFilter.BloomPreset = BloomFilter.BloomPresets.Focussed;
+            _bloomFilter.BloomStreakLength = 1;
+            _bloomFilter.BloomThreshold = 0f;
+            _bloomFilter.BloomStrengthMultiplier = 1.75f;
+
+            _pps.Settings.Boundary.Size = new PrimordialParticleSystems.Utility.Point(width, height);
         }
     }
 }

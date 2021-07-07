@@ -3,7 +3,7 @@ using PrimordialParticleSystems;
 using System.Collections.Generic;
 using System.ComponentModel;
 
-namespace PPSMonoGame
+namespace PPSMonoGame.PPS
 {
 	class PPSSettings : Settings
 	{

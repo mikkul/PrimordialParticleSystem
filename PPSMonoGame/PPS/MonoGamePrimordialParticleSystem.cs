@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using PrimordialParticleSystems;
 
-namespace PPSMonoGame
+namespace PPSMonoGame.PPS
 {
 	class MonoGamePrimordialParticleSystem : PrimordialParticleSystem
 	{

@@ -127,6 +127,11 @@ namespace PrimordialParticleSystems
 		/// </summary>
 		public virtual void Update()
 		{
+			if(Settings.IsPaused)
+			{
+				return;
+			}
+
 			foreach (var particle in Particles)
 			{
 				UpdateParticleRotation(particle);

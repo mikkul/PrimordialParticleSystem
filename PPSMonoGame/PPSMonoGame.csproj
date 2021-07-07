@@ -60,14 +60,16 @@
   <ItemGroup>
     <Compile Include="Camera.cs" />
     <Compile Include="Main.cs" />
-    <Compile Include="MonoGamePrimordialParticleSystem.cs" />
-    <Compile Include="PPSSettings.cs" />
+    <Compile Include="PPS\MonoGamePrimordialParticleSystem.cs" />
+    <Compile Include="PPS\PPSSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering\BloomFilter.cs" />
     <Compile Include="Rendering\QuadRenderer.cs" />
+    <Compile Include="UI\Sidebar.cs" />
     <Compile Include="Utility\MonoGameExtensions.cs" />
-    <Compile Include="Utility\Myra\LabelledInput.cs" />
+    <Compile Include="UI\LabelledInput.cs" />
+    <Compile Include="WindowManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="AssetManagementBase, Version=0.5.2.0, Culture=neutral, processorArchitecture=MSIL">

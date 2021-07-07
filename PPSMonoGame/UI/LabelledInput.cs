@@ -1,7 +1,7 @@
 ﻿using Myra.Graphics2D;
 using Myra.Graphics2D.UI;
 
-namespace PPSMonoGame.Utility.Myra
+namespace PPSMonoGame.UI
 {
 	class LabelledInput : Grid
 	{

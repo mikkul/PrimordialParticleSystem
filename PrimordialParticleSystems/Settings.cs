@@ -74,6 +74,12 @@ namespace PrimordialParticleSystems
 		public IBoundary Boundary { get; set; }
 
 		/// <summary>
+		/// If set to true, the simulation won't run upon calling <see cref="PrimordialParticleSystem.Update"/>
+		/// </summary>
+		[Browsable(false)]
+		public bool IsPaused { get; set; }
+
+		/// <summary>
 		/// Number of pixels a particle can traverse in a straight line in one frame
 		/// </summary>
 		[Category("Simulation")]
