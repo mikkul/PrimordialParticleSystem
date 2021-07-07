@@ -116,6 +116,7 @@ namespace PrimordialParticleSystems
 		public static T FromFile<T>(string filePath) where T : Settings
 		{
 			T settingsObject = JsonConvert.DeserializeObject<T>(File.ReadAllText(filePath));
+			settingsObject.Boundary = new RectBoundary(0, 0); // temporary fix
 			return settingsObject;
 		}
 

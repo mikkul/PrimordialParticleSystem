@@ -1,4 +1,5 @@
 ﻿using PrimordialParticleSystems.Utility;
+using System.Collections.Generic;
 
 namespace PrimordialParticleSystems
 {
@@ -45,5 +46,10 @@ namespace PrimordialParticleSystems
 		/// Total number of neighbours in reaction radius
 		/// </summary>
 		public int NeighbourCount { get; set; }
+
+		/// <summary>
+		/// Ratio of left-side neighbours to the right-side neighbours
+		/// </summary>
+		public int NeigbhourRatio { get; set; }
 	}
 }

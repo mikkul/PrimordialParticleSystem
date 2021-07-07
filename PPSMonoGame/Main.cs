@@ -9,6 +9,7 @@ using PPSMonoGame.UI;
 using PPSMonoGame.Utility;
 using PrimordialParticleSystems.Boundaries;
 using System;
+using System.IO;
 
 namespace PPSMonoGame
 {
@@ -23,13 +24,16 @@ namespace PPSMonoGame
         RenderTarget2D _renderTarget2;
         BloomFilter _bloomFilter;
         Texture2D _whitePixelTexture;
+        Sidebar _sidebar;
 
         public Main()
         {
             _graphics = new GraphicsDeviceManager(this);
+            _graphics.SynchronizeWithVerticalRetrace = false;
 
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            IsFixedTimeStep = false;
 
             _graphics.GraphicsProfile = GraphicsProfile.HiDef;
         }
@@ -39,18 +43,19 @@ namespace PPSMonoGame
             _windowManager = new WindowManager(Window, _graphics, 500, 300);
             _windowManager.WindowSizeChanged += WindowSizeChanged;
 
-            var settings = new PPSSettings
-            {
-                Boundary = new RectBoundary(0, 0),
-                Alpha = 180,
-                Beta = 17,
-                ParticleSize = 2,
-                ParticleSpeed = 7,
-                ReactionRadius = 150,
-                BoundariesEnabled = true,
-                MouseForceMultiplier = 250,
-                MouseForceRadius = 150,
-            };
+            //var settings = new PPSSettings
+            //{
+            //    Boundary = new RectBoundary(0, 0),
+            //    Alpha = 180,
+            //    Beta = 17,
+            //    ParticleSize = 2,
+            //    ParticleSpeed = 7,
+            //    ReactionRadius = 150,
+            //    BoundariesEnabled = true,
+            //    MouseForceMultiplier = 250,
+            //    MouseForceRadius = 150,
+            //};
+            var settings = PPSSettings.FromFile<PPSSettings>(Path.Combine(Content.RootDirectory, "Presets", "default.preset"));
             _pps = new MonoGamePrimordialParticleSystem(settings, Content);
 
             MyraEnvironment.Game = this;
@@ -60,11 +65,11 @@ namespace PPSMonoGame
             mainGrid.ColumnsProportions.Add(new Proportion(ProportionType.Part, 1));
             mainGrid.RowsProportions.Add(new Proportion());
 
-            var sidebar = new Sidebar(_pps, _windowManager, Content.RootDirectory);
+            _sidebar = new Sidebar(_pps, _windowManager, Content.RootDirectory);
 
             var sidebarScrollViewer = new ScrollViewer
             {
-                Content = sidebar,
+                Content = _sidebar,
                 GridColumn = 1,
                 GridRow = 0,
             };
@@ -110,6 +115,10 @@ namespace PPSMonoGame
 
             _pps.Update();
             HandleInput();
+
+            var fps = 1000 / gameTime.ElapsedGameTime.TotalMilliseconds;
+            _sidebar.FPSCounterLabel.Text = $"FPS: {fps}";
+            _sidebar.ParticleCountLabel.Text = $"No of particles: {_pps.Particles.Count}";
 
 			base.Update(gameTime);
         }

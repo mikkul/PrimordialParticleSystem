@@ -3,6 +3,7 @@ using PrimordialParticleSystems.Utility.Extensions;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace PrimordialParticleSystems
 {
@@ -132,6 +133,11 @@ namespace PrimordialParticleSystems
 				return;
 			}
 
+			if(Particles.Count > 1)
+			{
+				SweepAndPrune();
+			}
+
 			foreach (var particle in Particles)
 			{
 				UpdateParticleRotation(particle);
@@ -140,49 +146,11 @@ namespace PrimordialParticleSystems
 		}
 
 		#region Private methods
-		private (int left, int right) GetNumberOfNeighboursOnEachSide(Particle particle, List<Point> neighbours)
+		private void UpdateParticleRotation(Particle particle)
 		{
-			int leftNeighbours = 0;
-			int rightNeighbours = 0;
+			float reactionRotation = Settings.Beta * Math.Sign(particle.NeigbhourRatio) * particle.NeighbourCount;
 
-			foreach (Point neighbour in neighbours)
-			{
-				float xSeparation = neighbour.X - particle.Position.X;
-				float ySeparation = neighbour.Y - particle.Position.Y;
-
-				float separationAngle = (float)(Math.Atan2(ySeparation, xSeparation));
-
-				if (xSeparation * Math.Sin(particle.RotationRadians) - ySeparation * Math.Cos(particle.RotationRadians) < 0)
-				{
-					rightNeighbours++;
-				}
-				else
-				{
-					leftNeighbours++;
-				}
-			}
-			return (leftNeighbours, rightNeighbours);
-		}
-
-		private List<Point> GetParticleNeighbours(Particle particle)
-		{
-			var inRange = new List<Point>();
-
-			foreach (Particle otherParticle in Particles)
-			{
-				// brute force for now
-				// TODO: optimize with prune and sweep(?)
-				if (particle != otherParticle)
-				{
-					double distSquared = Math.Pow(Math.Abs(particle.Position.X - otherParticle.Position.X), 2) + Math.Pow(Math.Abs(particle.Position.Y - otherParticle.Position.Y), 2);
-					if (distSquared <= Settings.ReactionRadiusSquared)
-					{
-						inRange.Add(particle.Position);
-					}
-				}
-			}
-
-			return inRange;
+			particle.Rotation += Settings.Alpha + reactionRotation;
 		}
 
 		private void UpdateParticlePosition(Particle particle)
@@ -201,16 +169,52 @@ namespace PrimordialParticleSystems
 			}
 		}
 
-		private void UpdateParticleRotation(Particle particle)
+		private void SweepAndPrune()
 		{
-			List<Point> neighbours = GetParticleNeighbours(particle);
+			Dictionary<Particle, (float left, float right)> endpoints = new Dictionary<Particle, (float left, float right)>();
+			Particles = Particles.OrderBy(p => p.Position.X).ToList();
+			foreach (var particle in Particles)
+			{
+				endpoints[particle] = (particle.Position.X - Settings.ReactionRadius, particle.Position.X + Settings.ReactionRadius);
+				particle.NeigbhourRatio = 0;
+				particle.NeighbourCount = 0;
+			}
+			var activeList = new List<Particle>();
+			activeList.Add(Particles[0]);
+			for (int i = 1; i < Particles.Count; i++)
+			{
+				for (int j = 0; j < activeList.Count; j++)
+				{
+					if (endpoints[Particles[i]].left > endpoints[activeList[j]].right)
+					{
+						activeList.RemoveAt(j);
+						j--;
+						continue;
+					}
 
-			(int left, int right) = GetNumberOfNeighboursOnEachSide(particle, neighbours);
-			particle.NeighbourCount = left + right;
+					float dx = Particles[i].Position.X - activeList[j].Position.X;
+					float dy = Particles[i].Position.Y - activeList[j].Position.Y;
+					double distSquared = dx * dx + dy * dy;
+					if (distSquared <= Settings.ReactionRadiusSquared)
+					{
+						float xSeparation = activeList[j].Position.X - Particles[i].Position.X;
+						float ySeparation = activeList[j].Position.Y - Particles[i].Position.Y;
 
-			float reactionRotation = Settings.Beta * Math.Sign(right - left) * particle.NeighbourCount;
+						float separationAngle = (float)Math.Atan2(ySeparation, xSeparation);
 
-			particle.Rotation += Settings.Alpha + reactionRotation;
+						if (xSeparation * Math.Sin(Particles[i].RotationRadians) - ySeparation * Math.Cos(Particles[i].RotationRadians) < 0)
+						{
+							Particles[i].NeigbhourRatio++;
+						}
+						else
+						{
+							Particles[i].NeigbhourRatio--;
+						}
+						Particles[i].NeighbourCount++;
+					}
+				}
+				activeList.Add(Particles[i]);
+			}
 		}
 		#endregion
 	}
