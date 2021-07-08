@@ -1,12 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using PrimordialParticleSystems;
 using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace PPSMonoGame.PPS
 {
-	class PPSSettings : Settings
+	internal class PPSSettings : Settings
 	{
+		private float _mouseForceRadius;
+		private float _mouseForceRadiusSquared;
+
 		public PPSSettings()
 		{
 			NeighbourCountThresholds = new List<IntValue>
@@ -45,14 +49,22 @@ namespace PPSMonoGame.PPS
 		/// </summary>
 		[Category("Interaction")]
 		[DisplayName("Mouse radius")]
-		public float MouseForceRadius { get; set; }
+		public float MouseForceRadius 
+		{ 
+			get => _mouseForceRadius;
+			set
+			{
+				_mouseForceRadius = value;
+				_mouseForceRadiusSquared = value * value;
+			}
+		}
 
 		/// <summary>
-		/// 
+		/// Used in calculations
 		/// </summary>
-		[Category("Readonly")]
-		[DisplayName("Mouse radius sq")]
-		public float MouseForceRadiusSquared => MouseForceRadius * MouseForceRadius;
+		[JsonIgnore]
+		[Browsable(false)]
+		public float MouseForceRadiusSquared => _mouseForceRadiusSquared;
 
 		/// <summary>
 		/// 
@@ -76,7 +88,7 @@ namespace PPSMonoGame.PPS
 		public float ParticleSize { get; set; }
 	}
 
-	struct IntValue
+	internal struct IntValue
 	{
 		public IntValue(int value)
 		{

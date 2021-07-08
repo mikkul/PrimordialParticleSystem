@@ -1,14 +1,14 @@
-﻿using Myra.Graphics2D.UI;
-using Myra.Graphics2D;
-using System;
-using System.IO;
+﻿using Myra.Graphics2D;
+using Myra.Graphics2D.UI;
 using Myra.Graphics2D.UI.File;
 using Myra.Graphics2D.UI.Properties;
 using PPSMonoGame.PPS;
+using System;
+using System.IO;
 
 namespace PPSMonoGame.UI
 {
-	class Sidebar : VerticalStackPanel
+	internal class Sidebar : VerticalStackPanel
 	{
 		private readonly MonoGamePrimordialParticleSystem _pps;
 		private readonly WindowManager _windowManager;
@@ -72,7 +72,7 @@ namespace PPSMonoGame.UI
 
 		private void AddPresets()
 		{
-			var presetsPath = Path.Combine(_mainContentDirectory, "Presets");
+			string presetsPath = Path.Combine(_mainContentDirectory, "Presets");
 
 			var saveSettingsPresetNameInput = new LabelledInput
 			{
@@ -85,7 +85,7 @@ namespace PPSMonoGame.UI
 			};
 			saveSettingsButton.Click += (s, a) =>
 			{
-				var name = saveSettingsPresetNameInput.Value;
+				string name = saveSettingsPresetNameInput.Value;
 				if (string.IsNullOrEmpty(name) || name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
 				{
 					return;
@@ -113,7 +113,7 @@ namespace PPSMonoGame.UI
 				try
 				{
 					_pps.Settings = PrimordialParticleSystems.Settings.FromFile<PPSSettings>(loadSettingsFileDialog.FilePath);
-					if(_settingsPropertyGrid != null)
+					if (_settingsPropertyGrid != null)
 					{
 						_settingsPropertyGrid.Object = _pps.Settings;
 					}

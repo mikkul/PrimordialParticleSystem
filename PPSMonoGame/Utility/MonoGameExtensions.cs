@@ -1,6 +1,6 @@
 ﻿namespace PPSMonoGame.Utility
 {
-	static class MonoGameExtensions
+	internal static class MonoGameExtensions
 	{
 		public static Microsoft.Xna.Framework.Vector2 ToVector2(this PrimordialParticleSystems.Utility.Point point)
 		{

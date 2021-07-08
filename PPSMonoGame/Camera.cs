@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace PPSMonoGame
+﻿namespace PPSMonoGame
 {
-	class Camera
+	internal class Camera
 	{
 		/// <summary>
 		/// 

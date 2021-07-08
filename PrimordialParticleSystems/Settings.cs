@@ -33,8 +33,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Alpha value in radians
 		/// </summary>
-		[Category("Readonly")]
-		[DisplayName("Alpha (radians)")]
+		[JsonIgnore]
+		[Browsable(false)]
 		public float AlphaRadians => _alphaRadians;
 
 		/// <summary>
@@ -42,7 +42,8 @@ namespace PrimordialParticleSystems
 		/// </summary>
 		[Category("Simulation")]
 		[DisplayName("Beta (degrees)")]
-		public float Beta { 
+		public float Beta
+		{
 			get => _betaDegrees;
 			set
 			{
@@ -54,8 +55,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Beta value in radians
 		/// </summary>
-		[Category("Readonly")]
-		[DisplayName("Beta (radians)")]
+		[JsonIgnore]
+		[Browsable(false)]
 		public float BetaRadians => _betaRadians;
 
 		/// <summary>
@@ -71,11 +72,13 @@ namespace PrimordialParticleSystems
 		[Category("Readonly")]
 		[DisplayName("Boundary")]
 		[JsonIgnore]
+		[Browsable(false)]
 		public IBoundary Boundary { get; set; }
 
 		/// <summary>
 		/// If set to true, the simulation won't run upon calling <see cref="PrimordialParticleSystem.Update"/>
 		/// </summary>
+		[JsonIgnore]
 		[Browsable(false)]
 		public bool IsPaused { get; set; }
 
@@ -104,8 +107,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Used for calculations
 		/// </summary>
-		[Category("Readonly")]
-		[DisplayName("Reaction radius sq")]
+		[JsonIgnore]
+		[Browsable(false)]
 		public float ReactionRadiusSquared => _reactionRadiusSquared;
 
 		/// <summary>
@@ -126,7 +129,7 @@ namespace PrimordialParticleSystems
 		/// <param name="filePath"></param>
 		public void SaveToFile(string filePath)
 		{
-			var json = JsonConvert.SerializeObject(this, Formatting.Indented);
+			string json = JsonConvert.SerializeObject(this, Formatting.Indented);
 			File.WriteAllText(filePath, json);
 		}
 	}

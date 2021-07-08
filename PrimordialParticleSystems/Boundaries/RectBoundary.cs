@@ -15,7 +15,7 @@ namespace PrimordialParticleSystems.Boundaries
 		/// <inheritdoc/>
 		public Point Clamp(Point point)
 		{
-			var clamped = point;
+			Point clamped = point;
 
 			clamped.X = MathHelper.Clamp(point.X, 0, Size.X);
 			clamped.Y = MathHelper.Clamp(point.Y, 0, Size.Y);

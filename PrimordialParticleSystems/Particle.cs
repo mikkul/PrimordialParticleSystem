@@ -1,5 +1,4 @@
 ﻿using PrimordialParticleSystems.Utility;
-using System.Collections.Generic;
 
 namespace PrimordialParticleSystems
 {
@@ -27,8 +26,8 @@ namespace PrimordialParticleSystems
 		/// <summary>
 		/// Current rotation in radians
 		/// </summary>
-		public float Rotation 
-		{ 
+		public float Rotation
+		{
 			get => _rotationDegrees;
 			set
 			{

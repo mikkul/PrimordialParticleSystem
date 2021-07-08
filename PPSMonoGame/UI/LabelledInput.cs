@@ -3,7 +3,7 @@ using Myra.Graphics2D.UI;
 
 namespace PPSMonoGame.UI
 {
-	class LabelledInput : Grid
+	internal class LabelledInput : Grid
 	{
 		public LabelledInput()
 		{

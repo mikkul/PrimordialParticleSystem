@@ -3,7 +3,7 @@ using System;
 
 namespace PPSMonoGame
 {
-	class WindowManager
+	internal class WindowManager
 	{
 		public event WindowSizeChangedHandler WindowSizeChanged;
 
@@ -24,8 +24,8 @@ namespace PPSMonoGame
 			_windowHeight = minWindowHeight;
 		}
 
-		public int WindowWidth 
-		{ 
+		public int WindowWidth
+		{
 			get => _windowWidth;
 			set
 			{
@@ -43,7 +43,7 @@ namespace PPSMonoGame
 
 		public void ApplyChanges()
 		{
-			if(_graphics.PreferredBackBufferWidth == _windowWidth && _graphics.PreferredBackBufferHeight == _windowHeight)
+			if (_graphics.PreferredBackBufferWidth == _windowWidth && _graphics.PreferredBackBufferHeight == _windowHeight)
 			{
 				return; // size hasn't changed
 			}
@@ -64,5 +64,5 @@ namespace PPSMonoGame
 		}
 	}
 
-	delegate void WindowSizeChangedHandler(int width, int height);
+	internal delegate void WindowSizeChangedHandler(int width, int height);
 }

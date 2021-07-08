@@ -5,7 +5,7 @@ using PrimordialParticleSystems;
 
 namespace PPSMonoGame.PPS
 {
-	class MonoGamePrimordialParticleSystem : PrimordialParticleSystem
+	internal class MonoGamePrimordialParticleSystem : PrimordialParticleSystem
 	{
 		private readonly Texture2D _circleTexture;
 
@@ -21,17 +21,17 @@ namespace PPSMonoGame.PPS
 		/// <inheritdoc/> 
 		public override void Render()
 		{
-			foreach (var particle in Particles)
+			foreach (Particle particle in Particles)
 			{
 				Color color = Color.Magenta;
 
 				for (int i = 0; i < Settings.NeighbourCountThresholds.Count; i++)
 				{
-					if(i >= Settings.ParticleColors.Count)
+					if (i >= Settings.ParticleColors.Count)
 					{
 						break;
 					}
-					if(particle.NeighbourCount >= Settings.NeighbourCountThresholds[i].Value)
+					if (particle.NeighbourCount >= Settings.NeighbourCountThresholds[i].Value)
 					{
 						color = Settings.ParticleColors[i];
 					}
