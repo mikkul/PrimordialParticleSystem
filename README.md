@@ -9,6 +9,7 @@ Check out [this video](https://www.youtube.com/watch?v=makaJpLvbow) for an intro
 ## Table of contents
 
 * [Features](#features)
+* [Sample video](#sample-video)
 * [Instalation](#instalation)
 * [Usage](#usage)
 * [Sources](#sources)
@@ -19,6 +20,10 @@ Check out [this video](https://www.youtube.com/watch?v=makaJpLvbow) for an intro
 * save and load settings presets
 * manage the number of particles on screen
 * manipulate the position of particles using your mouse
+
+## Sample video
+
+https://user-images.githubusercontent.com/72651777/127690525-d4f4401f-0c40-423b-a30d-51f14f45be15.mp4
 
 ## Instalation
 
