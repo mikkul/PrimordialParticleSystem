@@ -1,7 +1,0 @@
-﻿namespace PrimordialParticleSystem
-{
-	interface ISystem
-	{
-
-	}
-}
